@@ -85,8 +85,6 @@ server:
 
 When using the `ui5-tooling-transpile` in combination with the `ui5-tooling-modules` we need to ensure a proper execution order which requires to run the transpile before the module generation. With the usage of the `afterTask` and `afterMiddleware` configuration options this can be achieved.
 
-The configuration option `addToNamespace` for the `ui5-tooling-modules-task` is important to use since it ensures to include the OSS modules into the namespace of your application or library (e.g. in this example into the namespace `my/tsapp/showcase/thirdparty`). Once you build your application, you will find the OSS modules there. This will safeguard you from deployment issues or conflicts with other similar OSS modules.
-
 ### Step 2: Install the OSS depencencies
 
 Run the following commands to install `lodash` (as dependency) and the type definitions for `lodash` from DefinitelyTyped (as dev dependency):
@@ -118,6 +116,26 @@ import { reverse } from "lodash";
 
 reverse("Hello World!".split("")).join(""));
 ```
+
+### Step 5: Local development with UI5 from CDN
+
+By default all resources loaded with the UI5 module loader are loaded relative to the UI5 bootstrap script. This means if UI5 is booted from `./resources/sap-ui-core.js` a dependency called `lodash` is loaded from `./resources/lodash.js`. When loading UI5 from CDN via `https://sdk.openui5.org/resources/sap-ui-core.js`, the module loader tries to load the dependency `lodash` from `https://sdk.openui5.org/resources/lodash.js`. But as `lodash` is a local module, it needs to be redirected to the local server.
+
+For this problem, the `ui5-tooling-modules` has a solution. It renames all dependencies to local dependencies by adding them to the namespace of the application. E.g. the dependency `lodash` becomes `my/tsapp/showcase/thirdparty/lodash`. With that we ensure, that the used modules can be loaded properly by the module loader. You can see the result by running the build: `npm run build` and open the file `dist/controller/Main-dbg.controller.js`. The local OSS module is also an additional safeguard to others using the same OSS that it is uniqually available per application and you don't run into versioning conflicts.
+
+For the development time when running the application with `npm run start-cdn` you need to add a `resourceroots` configuration for the UI5 module loader. In the `index-cdn.html` file, you need to add the following configuration `"lodash": "./resources/lodash"` to the `resourceroots` section:
+
+```html
+    <script
+      id="sap-ui-bootstrap"
+      src="https://sdk.openui5.org/1.131.1/resources/sap-ui-core.js"
+      data-sap-ui-resourceroots='{
+        "my.tsapp.showcase": "./",
+        "lodash": "./resources/lodash"
+      }'
+```
+
+Now you can also run your application locally against the UI5 CDN.
 
 ### Wrap up
 

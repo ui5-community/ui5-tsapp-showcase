@@ -12,5 +12,6 @@ yarn-error.log*
 # Dependency directories
 node_modules/
 
+.ui5-tooling-modules
 .DS_Store
 .env
